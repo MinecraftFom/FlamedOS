@@ -58,3 +58,19 @@ void putc(char c, struct fd_vga_canvas * canvas)
 
     refresh(canvas);
 }
+
+void kinit()
+{
+    init(default_display);
+}
+
+void kputc(char c)
+{
+    putc(c, default_display);
+}
+
+void kputs(char* c)
+{
+    while (*c != '\0')
+        kputc(*c++);
+}
