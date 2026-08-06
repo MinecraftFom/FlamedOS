@@ -15,10 +15,10 @@ struct fd_vga_canvas // 80 x 25 char size
 
 static struct fd_vga_canvas *default_display;
 
-void init()
+void init(struct fd_vga_canvas *canvas)
 {
     for (int i = 0; i < VGA_MAX; i++)
-        default_display->characters[i] = ' ';
+        canvas->characters[i] = ' ';
 }
 
 void display(int x, int y, int ay, struct fd_vga_canvas *canvas)
