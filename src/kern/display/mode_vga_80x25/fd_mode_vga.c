@@ -1,3 +1,5 @@
+// Notice: the prefix 'fd_' represents 'Flamed_Kernel.DisplayModule'
+
 #define VGA_PG_WIDTH 80
 #define VGA_PG_HEIGHT 25
 #define VGA_PG_MAX VGA_PG_WIDTH * VGA_PG_HEIGHT
@@ -15,17 +17,20 @@ struct fd_vga_canvas // 80 x 25 char size
 
 static struct fd_vga_canvas *default_display;
 
+// Global init function
 void init(struct fd_vga_canvas *canvas)
 {
     for (int i = 0; i < VGA_MAX; i++)
         canvas->characters[i] = ' ';
 }
 
+// Global display function
 void display(int x, int y, int ay, struct fd_vga_canvas *canvas)
 {
     *((int*)0xB8000 + y * VGA_PG_WIDTH + x) = VGA_D_LOC(canvas, x, ay);
 }
 
+// Global refresh function
 void refresh(struct fd_vga_canvas *canvas) // Current line of the 'stack pointer', which refers to the top of the display
 {
     for (int y = 0; y < VGA_PG_HEIGHT; y++)
@@ -37,7 +42,8 @@ void refresh(struct fd_vga_canvas *canvas) // Current line of the 'stack pointer
     }
 }
 
-void putc(char c, struct fd_vga_canvas * canvas)
+// Global putc function
+void putc(char c, struct fd_vga_canvas *canvas)
 {
     switch (c)
     {
@@ -59,16 +65,19 @@ void putc(char c, struct fd_vga_canvas * canvas)
     refresh(canvas);
 }
 
+// Kernel-specified
 void kinit()
 {
     init(default_display);
 }
 
+// Kernel-specified
 void kputc(char c)
 {
     putc(c, default_display);
 }
 
+// Kernel-specified
 void kputs(char* c)
 {
     while (*c != '\0')
