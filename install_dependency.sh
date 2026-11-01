@@ -1,0 +1,1 @@
+sudo apt install build-essential bison flex libgmp-dev libmpfr-dev libmpc-dev texinfo
