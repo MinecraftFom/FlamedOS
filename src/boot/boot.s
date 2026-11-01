@@ -37,11 +37,11 @@ _start:
     movb $0x00, %dh
     movb $0x02, %cl
 
-    movb $KERNEL_SECTORS, %ah # Announce kernel sector count
+    movb $KERNEL_SECTORS, %al # Announce kernel sector count
     movb $0x02, %ah
     movb drive, %dl
     int $0x13
-    jc err_dist
+    jc err_disk
 
     movw $boot_msg_drive_found, %si
     call blprint
@@ -53,7 +53,6 @@ _start:
     orl $0x01, %eax
     movl %eax, %cr0
     ljmp $0x08, $blstart
-
 
 .code32 # 32-bits
 blstart: # Boot loader entry. Here, the kernel is going to be booted
@@ -67,6 +66,8 @@ blstart: # Boot loader entry. Here, the kernel is going to be booted
     movl $0x90000, %esp # Stack pointer
     movl $0x10000, %eax # Kernel starter
     jmp *%eax
+
+    call blhalt # After kernel ends
 
 .code16 # Switch back to 16-bits
 blprint: # Boot loader print
@@ -89,15 +90,16 @@ blhalt: # Kill the boot
 err_disk:
     movw $boot_error_disk_error, %si
     call blprint
+    call blhalt
 // ==========
 
-.section .data # The data section. Holds all the constants
-boot_msg_author: .ascii "FlamedOS by Fom477"
-boot_msg_boot: .ascii "Booting up FlamedOS..."
-boot_msg_drive_found: .ascii "Successfully found valid boot drive. Booting..."
-boot_msg_welcome: .ascii "Welcome to use FlamedOS!"
+// .section .data # The data section. Holds all the constants
+boot_msg_author: .asciz "FlamedOS by Fom477"
+boot_msg_boot: .asciz "Booting up FlamedOS..."
+boot_msg_drive_found: .asciz "Successfully found valid boot drive. Booting..."
+boot_msg_welcome: .asciz "Welcome to use FlamedOS!"
 
-boot_error_disk_error: .ascii "Disk error: unable to load disk, boot failed"
+boot_error_disk_error: .asciz "Disk error: unable to load disk, boot failed"
 
 drive: .byte 0
 
@@ -116,5 +118,6 @@ gdt_descriptor:
     .word gdt_bottom - gdt_header - 1 # Size
     .long gdt_header
 
+// .section .text
 .org 510 # I leave 2 bytes left for the 0xAA55 signature
 .word 0xAA55 # Boot signature

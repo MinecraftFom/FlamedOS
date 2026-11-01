@@ -54,7 +54,7 @@
 ## Build, Compile & Release
 #add_executable(${FLAMEOS_OUTPUT_ELF} ${C_SOURCES} ${H_SOURCES} ${S_SOURCES})
 #target_link_options(${FLAMEOS_OUTPUT_ELF} PRIVATE
-#        -T${CMAKE_CURRENT_SOURCE_DIR}/src/linker.ld
+#        -T${CMAKE_CURRENT_SOURCE_DIR}/src/bootsector.ld
 #        -nostdlib -static -no-pie
 #        -Wl,--build-id=none
 #        -Wl,-z,max-page-size=0x1000
@@ -67,8 +67,14 @@
 #        VERBATIM)
 ## ==========
 
+# IMPORTANT NOTICE
+# THE BEFORE PART IS WRITTEN BY FOM477, WHICH IS SMOKINGLY USELESS
+# THE BELOW PART IS WRITTEN BY FOM477'S FRIEND
+
+# SPECIAL THANK TO FOM477'S QQ FRIENDS~
+
 cmake_minimum_required(VERSION 3.28.3)
-project(FlameOS ASM-ATT C)
+project(FlameOS ASM C)
 
 # ==========
 # Variables
@@ -80,7 +86,6 @@ set(FLAMEOS_BOOTSECTOR_BIN bootsector.bin)
 set(FLAMEOS_BOOTSECTOR_ELF bootsector.elf)
 set(FLAMEOS_BOOTSECTOR_OBJ bootsector.o)
 
-set(CMAKE_CROSSCOMPILING 1)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR i686)
@@ -98,16 +103,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffreestanding -fno-builtin -fno-stack-prote
 
 # ==========
 # Project registries
-file(GLOB_RECURSE C_SOURCES "./src/*.c")
-file(GLOB_RECURSE H_SOURCES "./includes/*.h")
-file(GLOB_RECURSE S_SOURCES "./src/*.s")
+file(GLOB_RECURSE C_SOURCES CONFIGURE_DEPENDS "./src/*.c")
+file(GLOB_RECURSE S_SOURCES CONFIGURE_DEPENDS "./src/*.s" "./src/*.S")
 
-# Bootsector must NOT be part of the kernel; remove it from the glob
+# Bootsector must NOT be part of the kernel
 set(BOOTSECTOR_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/boot/boot.s")
-set(BOOTSECTOR_LD  "${CMAKE_CURRENT_SOURCE_DIR}/src/linker.ld")
-list(REMOVE_ITEM S_SOURCES "${BOOTSECTOR_SRC}")
-
-include_directories("./includes")
+set(BOOTSECTOR_LD  "${CMAKE_CURRENT_SOURCE_DIR}/src/boot/bootsector.ld")
+list(FILTER S_SOURCES EXCLUDE REGEX "/boot/")
 # ==========
 
 # ==========
@@ -138,10 +140,13 @@ add_custom_command(
 # Kernel: compile → link at 0x10000 → pad to 8 KiB
 add_executable(${FLAMEOS_OUTPUT_ELF} ${C_SOURCES} ${S_SOURCES})
 
+target_include_directories(${FLAMEOS_OUTPUT_ELF} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+
 target_link_options(${FLAMEOS_OUTPUT_ELF} PRIVATE
-        -T${CMAKE_CURRENT_SOURCE_DIR}/src/linker.ld
+        -T${BOOTSECTOR_LD}
         -nostdlib -static -no-pie
-        -Wl,--build-id=none)
+        -Wl,--build-id=none
+        -Wl,-z,max-page-size=0x1000)
 
 add_custom_command(TARGET ${FLAMEOS_OUTPUT_ELF} POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary

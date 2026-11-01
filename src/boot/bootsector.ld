@@ -1,6 +1,10 @@
 SECTIONS
 {
     . = 0x7C00;
-    .text : { *(.text) }
+    .text : {
+        *(.text)
+        *(.rodata*)
+        *(.data*)
+    }
     /DISCARD/ : { *(.comment) *(.note*) *(.eh_frame*) }
 }
