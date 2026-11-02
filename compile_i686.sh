@@ -30,7 +30,7 @@ mkdir -p ./build-gcc && cd ./build-gcc
 ../gcc-14.2.0/configure \
  --target=$TARGET \
  --prefix="$PREFIX" \
- --enable-languages=c,c++ \
+ --enable-languages=c,c++,objc,obj-c++, rust \
  --disable-nls \
  --disable-werror \
  --without-headers
